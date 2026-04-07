@@ -9,16 +9,17 @@ pipeline {
     stages {
        
        
-        stage('Docker Login & Pull') {
-            steps {
-                script {
-                    withCredentials([usernamePassword(credentialsId: 'dockerhublogin', 'passwordVariable': 'DOCKER_PASS', usernameVariable: 'DOCKER_USER')]) {
-                        sh "echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin"
-                    }
-                    sh "docker pull ${DOCKER_IMAGE}:${DOCKER_TAG}"
-                }
-            }
+      stage('Login to Azure & Push Image') {
+    steps {
+        withCredentials([usernamePassword(credentialsId: 'azure-credentials', usernameVariable: 'AZURE_CLIENT_ID', passwordVariable: 'AZURE_CLIENT_SECRET')]) {
+            sh '''
+            az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET --tenant <TENANT_ID>
+            az acr login --name myacr998
+            docker push myacr998.azurecr.io/aks-javapp:latest
+            '''
         }
+    }
+}
      
       
 
